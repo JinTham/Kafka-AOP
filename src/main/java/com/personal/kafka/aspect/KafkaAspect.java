@@ -29,18 +29,18 @@ public class KafkaAspect {
     @Pointcut("interceptCommonErrorHandler() || interceptKafkaListener()")
     public void interceptKafka() {};
 
+    @AfterThrowing(pointcut = "interceptKafka()", throwing = "ex")
+    public void handleKafkaListenerException(Exception ex) {
+        log.error("Kafka Listener Exception: " + ex.getClass().getName() + " - " + ex.getMessage());
+    }
+
     @Before("interceptCommonErrorHandler()")
     public void handleCommonErrorHandler(JoinPoint joinPoint) {
         Object[] args = joinPoint.getArgs();
         if (args.length > 0 && args[0] instanceof Exception) {
             Exception ex = (Exception) args[0];
-            log.error("⚠️ Exception within ErrorHandler: " + ex.getMessage());
+            log.error("Exception within ErrorHandler: " + ex.getMessage());
         }
-    }
-
-    @AfterThrowing(pointcut = "interceptKafka()", throwing = "ex")
-    public void handleKafkaListenerException(Exception ex) {
-        log.error("⚠️ Kafka Listener Exception: " + ex.getClass().getName() + " - " + ex.getMessage());
     }
 }
 

@@ -2,9 +2,9 @@ package com.personal.kafka.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.support.Acknowledgment;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
 
 import static com.personal.kafka.config.KafkaTopicConfig.JIN_TOPIC;
 
@@ -26,18 +26,19 @@ public class KafkaListeners {
     }
 
     // Deserialization exception (simulate with invalid type)
-    @KafkaListener(topics = "json-fail-topic", groupId = "json-group")
+    @KafkaListener(topics = "conversion-fail-topic", groupId = "json-group")
     public void jsonListener(Integer dto) {
-        // will fail if invalid JSON is sent
+        // will fail if invalid argument type is sent
         System.out.println("Received DTO: " + dto);
     }
 
-    // Batch listener
-    @KafkaListener(topics = "batch-fail-topic", groupId = "batch-group")
-    public void batchListener(List<String> messages) {
-        messages.forEach(msg -> {
-            if ("FAIL".equals(msg)) throw new RuntimeException("Batch failure");
-        });
+    // Acknowledgement/commit timeout fail
+    @KafkaListener(topics = "ack-fail-topic")
+    public void handleMessage(@Payload String message, Acknowledgment ack) throws InterruptedException {
+            Thread.sleep(61000);
+            log.info("Processing complete, attempting ack...");
+            ack.acknowledge(); // This will fail if broker is down
+            log.info("Ack done");
     }
 
 }
