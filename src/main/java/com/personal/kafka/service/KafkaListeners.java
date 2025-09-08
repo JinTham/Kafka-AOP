@@ -26,17 +26,16 @@ public class KafkaListeners {
     }
 
     // Deserialization exception (simulate with invalid type)
-    @KafkaListener(topics = "conversion-fail-topic", groupId = "json-group")
+    @KafkaListener(topics = "conversion-fail-topic", groupId = "jin-group")
     public void jsonListener(Integer dto) {
         // will fail if invalid argument type is sent
         System.out.println("Received DTO: " + dto);
     }
 
     // Acknowledgement/commit timeout fail
-    @KafkaListener(topics = "ack-fail-topic")
+    @KafkaListener(topics = "ack-fail-topic", groupId = "jin-group")
     public void acknowledgementFail(@Payload String message, Acknowledgment ack) throws InterruptedException {
         log.info("Processing msg....");
-        Thread.sleep(100000);
         log.info("Processing complete, attempting ack...");
         ack.acknowledge();
         log.info("Ack done");

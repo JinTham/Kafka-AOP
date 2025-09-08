@@ -4,20 +4,18 @@ import com.personal.kafka.kafkaInterceptor.ProducerInterceptorWithLogging;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
-import org.springframework.boot.autoconfigure.AutoConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 
 import java.util.*;
 
-@AutoConfiguration
-@ConditionalOnClass(DefaultKafkaProducerFactory.class)
+@Configuration
 public class KafkaInterceptorConfig {
 
     @Bean
-    @ConditionalOnProperty(name = "spring.kafka.producer.interceptor.enabled", havingValue = "false")
+//    @ConditionalOnProperty(name = "spring.kafka.producer.interceptor.enabled", havingValue = "true")
     public BeanPostProcessor producerFactoryInterceptor() {
         return new BeanPostProcessor() {
 
@@ -29,7 +27,7 @@ public class KafkaInterceptorConfig {
                     Object existingInterceptor = configs.get(ProducerConfig.INTERCEPTOR_CLASSES_CONFIG);
                     List<String> interceptors = new ArrayList<>();
 
-                    // One existing interceptor
+                    // Multiple interceptors in a String separated by comma
                     if (existingInterceptor instanceof String s) {
                         for (String interceptorStr : s.split(",")) {
                             String item = interceptorStr.trim();
@@ -37,7 +35,7 @@ public class KafkaInterceptorConfig {
                                 interceptors.add(item);
                             }
                         }
-                        // Multiple existing interceptors
+                        // Multiple interceptors in a list
                     } else if (existingInterceptor instanceof Collection<?> interceptorList) {
                         interceptorList.forEach(item -> {
                             if (item != null) interceptors.add(item.toString());

@@ -14,6 +14,13 @@ import org.springframework.stereotype.Component;
 public class KafkaAspect {
 
     /**
+     * Intercept exceptions thrown from any kafkaTemplate method
+     * Only can catch Sync, Async will be caught by ProducerInterceptor instead)
+     */
+    @Pointcut("execution(public * org.springframework.kafka.core.KafkaTemplate.send*(..))")
+    public void interceptKafkaTemplate() { };
+
+    /**
      * Intercept exceptions thrown from any @KafkaListener method
      */
     @Pointcut("@annotation(org.springframework.kafka.annotation.KafkaListener)")
@@ -26,7 +33,7 @@ public class KafkaAspect {
     @Pointcut("execution(* org.springframework.kafka.listener.CommonErrorHandler+.*(..))")
     public void interceptCommonErrorHandler() { };
 
-    @Pointcut("interceptCommonErrorHandler() || interceptKafkaListener()")
+    @Pointcut("interceptCommonErrorHandler() || interceptKafkaListener() || interceptKafkaTemplate()")
     public void interceptKafka() {};
 
     @AfterThrowing(pointcut = "interceptKafka()", throwing = "ex")
