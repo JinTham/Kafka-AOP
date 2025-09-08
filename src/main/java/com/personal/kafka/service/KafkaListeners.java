@@ -34,11 +34,12 @@ public class KafkaListeners {
 
     // Acknowledgement/commit timeout fail
     @KafkaListener(topics = "ack-fail-topic")
-    public void handleMessage(@Payload String message, Acknowledgment ack) throws InterruptedException {
-            Thread.sleep(61000);
-            log.info("Processing complete, attempting ack...");
-            ack.acknowledge(); // This will fail if broker is down
-            log.info("Ack done");
+    public void acknowledgementFail(@Payload String message, Acknowledgment ack) throws InterruptedException {
+        log.info("Processing msg....");
+        Thread.sleep(100000);
+        log.info("Processing complete, attempting ack...");
+        ack.acknowledge();
+        log.info("Ack done");
     }
 
 }
