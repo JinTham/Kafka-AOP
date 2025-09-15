@@ -18,6 +18,11 @@ public class ProducerInterceptorWithLogging implements ProducerInterceptor<Strin
 
     @Override
     public void onAcknowledgement(RecordMetadata metadata, Exception exception) {
+//        try {
+//            Thread.sleep(10000);
+//        } catch (InterruptedException e) {
+//            throw new RuntimeException(e);
+//        }
         if (exception != null) {
             log.error("Failed to send message - Topic: {}, Partition: {}, Exception: {}",
                     metadata != null ? metadata.topic() : "unknown",

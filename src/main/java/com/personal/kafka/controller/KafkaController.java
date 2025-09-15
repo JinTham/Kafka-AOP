@@ -21,7 +21,14 @@ public class KafkaController {
 
     @PostMapping
     public ResponseEntity<String> publish(@RequestBody MessageRequest msgRequest) {
-        kafkaTemplate.send(msgRequest.topic(), msgRequest.message());
+        kafkaTemplate.send(msgRequest.topic(), msgRequest.message())
+                .whenComplete((res, ex) -> {
+            if (ex != null) {
+                log.error("KafkaTemplate send failllllll");
+            } else {
+                log.error("KafkaTemplate send succeedddd");
+            }
+        });
         return new ResponseEntity<>("Successfully sent " + msgRequest.message(), HttpStatus.OK);
     }
 

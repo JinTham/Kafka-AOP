@@ -2,11 +2,12 @@ package com.personal.kafka.aspect;
 
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
-import org.aspectj.lang.annotation.AfterThrowing;
-import org.aspectj.lang.annotation.Aspect;
-import org.aspectj.lang.annotation.Before;
-import org.aspectj.lang.annotation.Pointcut;
+import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.*;
+import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Component;
+
+import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 @Aspect
@@ -48,6 +49,25 @@ public class KafkaAspect {
             Exception ex = (Exception) args[0];
             log.error("Exception within ErrorHandler: " + ex.getMessage());
         }
+    }
+
+    @Around("interceptKafkaTemplate()")
+    public Object interceptKafkaTemplateSend(ProceedingJoinPoint pjp) throws Throwable {
+        // Call the original KafkaTemplate.send()
+        Object result = pjp.proceed();
+
+        if (result instanceof CompletableFuture<?> future && future.get() instanceof SendResult<?,?>) {
+            // Attach callback to CompletableFuture
+            future.whenComplete((res, ex) -> {
+                log.info("Intercepted CompletableFuture");
+                if (ex != null) {
+                    log.error("Kafka send failed: {}", ex.getMessage());
+                }
+            });
+            // Return the future back to caller
+            return future;
+        }
+        return result;
     }
 }
 
