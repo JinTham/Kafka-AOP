@@ -2,12 +2,11 @@ package com.personal.kafka.aspect;
 
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
-import org.aspectj.lang.ProceedingJoinPoint;
-import org.aspectj.lang.annotation.*;
-import org.springframework.kafka.support.SendResult;
+import org.aspectj.lang.annotation.AfterThrowing;
+import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.Before;
+import org.aspectj.lang.annotation.Pointcut;
 import org.springframework.stereotype.Component;
-
-import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 @Aspect
@@ -34,40 +33,37 @@ public class KafkaAspect {
     @Pointcut("execution(* org.springframework.kafka.listener.CommonErrorHandler+.*(..))")
     public void interceptCommonErrorHandler() { };
 
-    @Pointcut("interceptCommonErrorHandler() || interceptKafkaListener() || interceptKafkaTemplate()")
-    public void interceptKafka() {};
-
-    @AfterThrowing(pointcut = "interceptKafka()", throwing = "ex")
-    public void handleKafkaListenerException(Exception ex) {
-        log.error("Kafka Listener Exception: " + ex.getClass().getName() + " - " + ex.getMessage());
+    @AfterThrowing(pointcut = "interceptKafkaTemplate()", throwing = "ex")
+    public void handleKafkaTemplateException(Exception ex) throws Throwable {
+        log.error("Kafka Template Exception: " + ex.getClass().getName() + " - " + ex.getMessage());
+        throw ex;
     }
 
     @Before("interceptCommonErrorHandler()")
-    public void handleCommonErrorHandler(JoinPoint joinPoint) {
+    public void handleCommonErrorHandler(JoinPoint joinPoint) throws Throwable {
         Object[] args = joinPoint.getArgs();
-        if (args.length > 0 && args[0] instanceof Exception) {
-            Exception ex = (Exception) args[0];
+        if (args.length > 0 && args[0] instanceof Exception ex) {
             log.error("Exception within ErrorHandler: " + ex.getMessage());
         }
     }
 
-    @Around("interceptKafkaTemplate()")
-    public Object interceptKafkaTemplateSend(ProceedingJoinPoint pjp) throws Throwable {
-        // Call the original KafkaTemplate.send()
-        Object result = pjp.proceed();
-
-        if (result instanceof CompletableFuture<?> future && future.get() instanceof SendResult<?,?>) {
-            // Attach callback to CompletableFuture
-            future.whenComplete((res, ex) -> {
-                log.info("Intercepted CompletableFuture");
-                if (ex != null) {
-                    log.error("Kafka send failed: {}", ex.getMessage());
-                }
-            });
-            // Return the future back to caller
-            return future;
-        }
-        return result;
-    }
+//    @Around("interceptKafkaTemplate()")
+//    public Object interceptKafkaTemplateSend(ProceedingJoinPoint pjp) throws Throwable {
+//        // Call the original KafkaTemplate.send()
+//        Object result = pjp.proceed();
+//
+//        if (result instanceof CompletableFuture<?> future && future.get() instanceof SendResult<?,?>) {
+//            // Attach callback to CompletableFuture
+//            future.whenComplete((res, ex) -> {
+//                log.info("Intercepted CompletableFuture");
+//                if (ex != null) {
+//                    log.error("Kafka send failed: {}", ex.getMessage());
+//                }
+//            });
+//            // Return the future back to caller
+//            return future;
+//        }
+//        return result;
+//    }
 }
 

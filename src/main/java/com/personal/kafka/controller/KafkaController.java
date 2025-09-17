@@ -19,17 +19,34 @@ public class KafkaController {
     @Autowired
     private KafkaTemplate<String, String> kafkaTemplate;
 
-    @PostMapping
+    @Autowired
+    private KafkaTemplate<String, Integer> kafkaTemplateInteger;
+
+    @PostMapping()
     public ResponseEntity<String> publish(@RequestBody MessageRequest msgRequest) {
-        kafkaTemplate.send(msgRequest.topic(), msgRequest.message())
-                .whenComplete((res, ex) -> {
-            if (ex != null) {
-                log.error("KafkaTemplate send failllllll");
-            } else {
-                log.error("KafkaTemplate send succeedddd");
-            }
-        });
+        kafkaTemplate.send(msgRequest.topic(), msgRequest.message());
         return new ResponseEntity<>("Successfully sent " + msgRequest.message(), HttpStatus.OK);
+    }
+
+    /** Intercepted by "interceptKafkaTemplate()"
+     * org.springframework.kafka.KafkaException: Send failed
+     * org.apache.kafka.common.errors.TimeoutException: Topic non-existing-topic not present in metadata after 60000 ms.
+     */
+    @PostMapping(value = "/wrong-topic")
+    public ResponseEntity<String> publishWrongTopic(@RequestBody MessageRequest msgRequest) {
+        kafkaTemplate.send("non-existing-topic", msgRequest.message());
+        return new ResponseEntity<>("Failed to send " + msgRequest.message(), HttpStatus.OK);
+    }
+
+    /**
+     * Intercepted by "interceptKafkaTemplate()"
+     * org.apache.kafka.common.errors.SerializationException:
+     * Can't convert value of class java.lang.Integer to class org.apache.kafka.common.serialization.StringSerializer specified in value.serializer
+     */
+    @PostMapping(value = "/wrong-serializer")
+    public ResponseEntity<String> publishWrongType(@RequestBody MessageRequest msgRequest) {
+        kafkaTemplateInteger.send(msgRequest.topic(), 123);
+        return new ResponseEntity<>("Failed to send " + msgRequest.message(), HttpStatus.OK);
     }
 
 }

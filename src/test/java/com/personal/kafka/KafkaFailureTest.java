@@ -32,14 +32,13 @@ class KafkaFailureTest {
         assertThrows(KafkaException.class, () -> {
             // Send to a non-existing topic
             CompletableFuture<SendResult<String, String>> future = kafkaTemplate.send("non-existing-topic", "test-message");
-            log.info("xxxxxxxxx");
-            future.whenComplete((res, ex) -> {
-                log.info("yyyyyyy");
-                if (ex != null) {
-                    assertThat(ex.getCause())
-                            .isInstanceOf(UnknownTopicOrPartitionException.class);
-                }
-            });
+//            future.whenComplete((res, ex) -> {
+//                if (ex != null) {
+//                    log.info("xxxxxxx");
+//                    assertThat(ex.getCause()).isInstanceOf(UnknownTopicOrPartitionException.class);
+//                }
+//            });
+            assertThrows(Exception.class, () -> future.get());
         });
     }
 

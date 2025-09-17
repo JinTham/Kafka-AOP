@@ -8,10 +8,23 @@ import org.springframework.kafka.config.TopicBuilder;
 @Configuration
 public class KafkaTopicConfig {
 
-    public static final String JIN_TOPIC = "jin-topic";
+    @Bean
+    public NewTopic topic1() {
+        return TopicBuilder.name("good-topic").build();
+    }
 
     @Bean
-    public NewTopic topicConfig() {
-        return TopicBuilder.name(JIN_TOPIC).build();
+    public NewTopic topic2() {
+        return TopicBuilder.name("business-fail-topic").build();
+    }
+
+    @Bean
+    public NewTopic topic3() {
+        return TopicBuilder.name("deserialize-fail-topic").build();
+    }
+
+    @Bean
+    public NewTopic topic4() {
+        return TopicBuilder.name("redirect-fail-topic").build();
     }
 }
