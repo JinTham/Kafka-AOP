@@ -20,22 +20,22 @@ public class KafkaAspect {
      * Only can catch Sync, Async will be caught by ProducerInterceptor instead)
      */
     @Pointcut("execution(public * org.springframework.kafka.core.KafkaTemplate.send*(..))")
-    public void interceptKafkaTemplate() { };
+    public void interceptKafkaTemplate() {}
 
     /**
      * Intercept exceptions thrown from any @KafkaListener method
      */
     @Pointcut("@annotation(org.springframework.kafka.annotation.KafkaListener)")
-    public void interceptKafkaListener() { };
+    public void interceptKafkaListener() {}
 
     /**
-     * Intercept before any method in CommonErrorHandler interface
-     * or any subclass/implementation of it.
+     * Intercept before any method in CommonErrorHandler interface or any subclass/implementation of it.
+     * Only work if user marks ErrorHandler as Bean, either by overriding DefaultErrorHandler or through factory.setCommonErrorHandler()
      */
     @Pointcut("execution(* org.springframework.kafka.listener.CommonErrorHandler+.*(..))")
-    public void interceptCommonErrorHandler() { };
+    public void interceptCommonErrorHandler() {}
 
-    @AfterThrowing(pointcut = "interceptKafkaTemplate()", throwing = "ex")
+    @AfterThrowing(pointcut = "interceptKafkaTemplate() || interceptKafkaListener()", throwing = "ex")
     public void handleKafkaTemplateException(JoinPoint joinPoint, Exception ex) throws Throwable {
         log.error("Kafka Template Exception");
         logKafkaErrors(joinPoint, ex);
